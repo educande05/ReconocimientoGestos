@@ -23,11 +23,11 @@ MyBGSubtractorColor::MyBGSubtractorColor(VideoCapture vc) {
 	upper_bounds = vector<Scalar>(max_samples);
 	means = vector<Scalar>(max_samples);
 	
-	h_low = 12;
-        h_up = 7;
-	l_low = 30;
-	l_up = 40;
-	s_low = 80;
+        h_low = 5;
+        h_up = 34;
+        l_low = 17;
+        l_up = 7;
+        s_low = 17;
 	s_up = 80;
 
 	
@@ -81,7 +81,7 @@ void MyBGSubtractorColor::LearnModel() {
 		//dibujar los cuadrados
 		
 		for (int i = 0; i < max_samples; i++) {
-                        rectangle(tmp_frame, Rect(samples_positions[itd::vector<].x, samples_positions[i].y,
+                        rectangle(tmp_frame, Rect(samples_positions[i].x, samples_positions[i].y,
 				      SAMPLE_SIZE, SAMPLE_SIZE), Scalar(0, 255, 0), 2);
 		}
 		
@@ -102,16 +102,15 @@ void MyBGSubtractorColor::LearnModel() {
         // ...
 	
         cvtColor(frame,hls_frame,CV_BGR2HLS);
-       // std::vector<Scalar> Means;
         for (int i = 0; i < max_samples; i++) {
-                Scalar aux = mean( cv::Mat(hls_frame, Rect(samples_positions[i].x, samples_positions[i].y,
+                means[i] = mean( cv::Mat(hls_frame, Rect(samples_positions[i].x, samples_positions[i].y,
                               SAMPLE_SIZE, SAMPLE_SIZE)) );
-                means.push_back(aux);
         }
 
         destroyWindow("Cubre los cuadrados con la mano y pulsa espacio");
 
 }
+
 void  MyBGSubtractorColor::ObtainBGMask(cv::Mat frame, cv::Mat &bgmask) {
         
         // CODIGO 1.2
@@ -125,32 +124,46 @@ void  MyBGSubtractorColor::ObtainBGMask(cv::Mat frame, cv::Mat &bgmask) {
         // acc+= dst;
     cv::Mat hls_frame;
     cvtColor(frame,hls_frame,CV_BGR2HLS);
-    cv::Mat acc(frame.rows, frame.cols, CV_8U);
+    cv::Mat acc(frame.rows, frame.cols, CV_8U, Scalar(0));
 
     vector<Mat> aux;
     for(int i = 0; i < means.size(); i++){
-        // Arreglar y comprobar antes de meter en el bound.
-        lower_bounds[i] = ( means[i] - Scalar(h_low,l_low,s_low) );
-        upper_bounds[i] = ( means[i] + Scalar(h_up,l_up,s_up) );
-//            if (lower_bounds[i].x < 0)  lower_bounds[i].x = 0;
-//            if (lower_bounds[i].y < 0)  lower_bounds[i].y = 0;
-//            if (lower_bounds[i].z < 0)  lower_bounds[i].z = 0;
-//            if (lower_bounds[i].x > 255)  lower_bounds[i].x = 255;
-//            if (lower_bounds[i].y > 255)  lower_bounds[i].y = 255;
-//            if (lower_bounds[i].z > 255)  lower_bounds[i].z = 255;
+        //LOWER BOUND
+        if (means[i][0] - h_low >= 0)
+            lower_bounds[i][0] = means[i][0] - h_low;
+        else
+            lower_bounds[i][0] = 0;
 
-//            if (upper_bounds[i].x < 0)  upper_bounds[i].x = 0;
-//            if (upper_bounds[i].y < 0)  upper_bounds[i].y = 0;
-//            if (upper_bounds[i].z < 0)  upper_bounds[i].z = 0;
-//            if (upper_bounds[i].x > 255)  upper_bounds[i].x = 255;
-//            if (upper_bounds[i].y > 255)  upper_bounds[i].y = 255;
-//            if (upper_bounds[i].z > 255)  upper_bounds[i].z = 255;
+        if (means[i][1] - l_low >= 0)
+            lower_bounds[i][1] = means[i][1] - l_low;
+        else
+            lower_bounds[i][1] = 0;
+
+        if (means[i][2] - s_low >= 0)
+            lower_bounds[i][2] = means[i][2] - s_low;
+        else
+            lower_bounds[i][2] = 0;
+        //UPPER BOUND
+        if (means[i][0] - h_up <= 255)
+            upper_bounds[i][0] = means[i][0] + h_up;
+        else
+            upper_bounds[i][0] = 255;
+
+        if (means[i][1] - l_up <= 255)
+            upper_bounds[i][1] = means[i][1] + l_up;
+        else
+            upper_bounds[i][1] = 255;
+
+        if (means[i][2] - s_up <= 255)
+            upper_bounds[i][2] = means[i][2] + s_up;
+        else
+            upper_bounds[i][2] = 255;
+
         Mat auxImg;
         inRange(hls_frame, lower_bounds[i], upper_bounds[i], auxImg);
+        acc += auxImg;
     }
-
-
-
+    acc.copyTo(bgmask);
 }
 
 

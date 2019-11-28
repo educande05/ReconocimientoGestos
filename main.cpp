@@ -68,10 +68,10 @@ int main(int argc, char** argv)
 		if ((char)c == 'q') break;
 
 		// obtenemos la máscara del fondo con el frame actual
-                
+                Prueba.ObtainBGMask(frame, bgmask);
                 // CODIGO 2.1
                 // limpiar la máscara del fondo de ruido
-                //...
+                medianBlur(bgmask, bgmask, 5);
 
 
 		// deteccion de las características de la mano
@@ -80,8 +80,8 @@ int main(int argc, char** argv)
 		
                 // mostramos el resultado del reconocimento de gestos
 
-		imshow("Reconocimiento", frame);
-
+                imshow("Fondo", bgmask);
+                imshow("Reconocimiento", frame);
 		
 	}
 	
