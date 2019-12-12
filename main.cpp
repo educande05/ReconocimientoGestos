@@ -71,16 +71,50 @@ int main(int argc, char** argv)
                 Prueba.ObtainBGMask(frame, bgmask);
                 // CODIGO 2.1
                 // limpiar la máscara del fondo de ruido
-                medianBlur(bgmask, bgmask, 5);
+                //medianBlur(bgmask, bgmask, 5);
+                int dilatation_size = 4;
+                Mat element = getStructuringElement(MORPH_RECT,
+                                                    Size(2*dilatation_size+1,2*dilatation_size+1),
+                                                    Point(dilatation_size,dilatation_size));
 
+                //erode(bgmask,bgmask,element);
+                dilate(bgmask,bgmask,element);
 
 		// deteccion de las características de la mano
+                vector<vector<Point> > contours;
+                findContours(bgmask,contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+                vector<vector<Point> > hull(contours.size());
+                vector<vector<int> > hull_int(contours.size());
+                vector<vector<Vec4i> > defects(contours.size());
+
+                for(int i=0; i<contours.size(); i++)
+                {
+                    convexHull(Mat(contours[i]),hull[i],false);
+                    convexHull(Mat(contours[i]),hull_int[i],false);
+                    if(hull_int[i].size() > 3)
+                    {
+                        convexityDefects(contours[i],hull_int[i],defects[i]);
+                    }
+                }
+
+
+
+                for(int i=0; i<contours.size(); i++)
+                {
+                    drawContours(frame, contours, i, cv::Scalar(255,0,0),2,8,vector<Vec4i>(),0,Point());
+                    drawContours(frame, hull, i, cv::Scalar(0,0,255),2,8,vector<Vec4i>(),0,Point());
+                    for(const Vec4i& v : defects[i])
+                    {
+                        int f_int = v[2];
+                        Point f(contours[i][f_int]);
+                        circle(frame, f, 4, Scalar(0,255,0), 2);
+                    }
+                }
 
                 // mostramos el resultado de la sobstracción de fondo
-		
-                // mostramos el resultado del reconocimento de gestos
-
                 imshow("Fondo", bgmask);
+
+                // mostramos el resultado del reconocimento de gestos           
                 imshow("Reconocimiento", frame);
 		
 	}

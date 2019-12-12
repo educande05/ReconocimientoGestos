@@ -23,12 +23,12 @@ MyBGSubtractorColor::MyBGSubtractorColor(VideoCapture vc) {
 	upper_bounds = vector<Scalar>(max_samples);
 	means = vector<Scalar>(max_samples);
 	
-        h_low = 5;
-        h_up = 34;
-        l_low = 17;
-        l_up = 7;
-        s_low = 17;
-	s_up = 80;
+        h_low = 11;
+        h_up = 11;
+        l_low = 11;
+        l_up = 15;
+        s_low = 20;
+        s_up = 30;
 
 	
 	namedWindow("Trackbars");
