@@ -89,8 +89,8 @@ int main(int argc, char** argv)
 
                 for(int i=0; i<contours.size(); i++)
                 {
-                    convexHull(Mat(contours[i]),hull[i],false);
-                    convexHull(Mat(contours[i]),hull_int[i],false);
+                   convexHull(Mat(contours[i]),hull[i],false);
+                   convexHull(Mat(contours[i]),hull_int[i],false);
                     if(hull_int[i].size() > 3)
                     {
                         convexityDefects(contours[i],hull_int[i],defects[i]);
@@ -124,3 +124,34 @@ int main(int argc, char** argv)
 	cap.release();
 	return 0;
 }
+
+
+getCenter(Mat bgmaskO )
+{
+	Mat &bgmaskR;
+	Mat element = getStructuringElement(MORPH_RECT,
+			Size(10*dilatation_size+1,10*dilatation_size+1),
+			Point(dilatation_size,dilatation_size));
+
+	erode(bgmask0, bgmaskR, element);
+
+	medianBlur(bgmaskR, bgmaskR, 10);
+	erode(bgmaskR, bgmaskR, element);
+	
+	vector<vector<Point> > contours;
+    findContours(bgmaskR,contours, CV_RETR_EXTERNAL,
+			CV_CHAIN_APPROX_SIMPLE);
+
+	return contours[0][0];
+}
+
+getAngle(Point point1, Point point2){
+
+	Point aux = point2-point1;
+	return getAngle(aux.x,aux.y);
+			
+}
+
+
+
+
